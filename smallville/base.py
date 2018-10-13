@@ -13,21 +13,8 @@ from sqlalchemy.sql.sqltypes import (
 
 
 # #############################################################################
-# Declarative base and helper functions to simplify models
+# Declarative base, naming convention etc
 #
-def foreign_key(reference, onupdate='CASCADE', ondelete='CASCADE', **kwds):
-    """Returns a Foreign Key, fully cascading by default."""
-    foreign_key = ForeignKey(reference, onupdate=onupdate, ondelete=ondelete)
-    kwds.setdefault('index', True)
-    return column(foreign_key, **kwds)
-
-
-def column(*args, **kwds):
-    """Returns a column, NOT nullable by default."""
-    kwds.setdefault('nullable', False)
-    return Column(*args, **kwds)
-
-
 def metadata():
     """Returns shared metadata instance with naming convention."""
     naming_convention = {
@@ -64,3 +51,19 @@ class Base(object):
             argstring = ', '.join('{}={!r}'.format(*pair) for pair in args)
             return f'<{model_name} [{identity}], {argstring}>'
         return f'<{model_name} [{identity}]>'
+
+
+# #############################################################################
+# column definition utility functions
+#
+def column(*args, **kwds):
+    """Returns a column, NOT nullable by default."""
+    kwds.setdefault('nullable', False)
+    return Column(*args, **kwds)
+
+
+def foreign_key(reference, onupdate='CASCADE', ondelete='CASCADE', **kwds):
+    """Returns a Foreign Key, fully cascading by default."""
+    foreign_key = ForeignKey(reference, onupdate=onupdate, ondelete=ondelete)
+    kwds.setdefault('index', True)
+    return column(foreign_key, **kwds)
