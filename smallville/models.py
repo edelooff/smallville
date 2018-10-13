@@ -1,6 +1,4 @@
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql.schema import (
-    UniqueConstraint)
 from sqlalchemy.sql.sqltypes import (
     Integer,
     Date,
@@ -20,6 +18,7 @@ class City(Base):
     __repr_args__ = 'name', 'size_code'
 
     # Column definition
+    id = column(Integer, primary_key=True)
     name = column(Text, unique=True)
     size_code = column(Enum('S', 'M', 'L', 'XL', name='ck_city_size_type'))
 
@@ -32,6 +31,7 @@ class Company(Base):
     __repr_args__ = 'name', 'industry'
 
     # Column definition
+    id = column(Integer, primary_key=True)
     name = column(Text)
     industry = column(Text)
     city_id = foreign_key('city.id')
@@ -44,11 +44,10 @@ class Company(Base):
 
 class Employee(Base):
     __repr_args__ = 'salary',
-    __table_args__ = UniqueConstraint('person_id', 'company_id'),
 
     # Column definition
-    person_id = foreign_key('person.id')
-    company_id = foreign_key('company.id')
+    person_id = foreign_key('person.id', index=False, primary_key=True)
+    company_id = foreign_key('company.id', primary_key=True)
     role = column(Enum('director', 'manager', 'worker', name='ck_role_type'))
     salary = column(Integer)
 
@@ -61,6 +60,7 @@ class Person(Base):
     __repr_args__ = 'first_name', 'last_name', 'email'
 
     # Column definition
+    id = column(Integer, primary_key=True)
     first_name = column(Text)
     last_name = column(Text)
     birthday = column(Date)

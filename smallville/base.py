@@ -8,8 +8,6 @@ from sqlalchemy.sql.schema import (
     Column,
     ForeignKey,
     MetaData)
-from sqlalchemy.sql.sqltypes import (
-    Integer)
 
 
 # #############################################################################
@@ -29,8 +27,6 @@ def metadata():
 @as_declarative(metadata=metadata())
 class Base(object):
     """Extended SQLAlchemy declarative base class."""
-    id = Column(Integer, primary_key=True)
-
     @declared_attr
     def __tablename__(cls):
         """Returns a table name with words separated by underscores."""
