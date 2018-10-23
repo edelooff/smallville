@@ -38,11 +38,11 @@ class Company(Base):
 
     # Relationships
     city = relationship('City', back_populates='companies')
-    contracts = relationship('Employee', back_populates='company')
-    employees = relationship('Person', secondary='employee', viewonly=True)
+    contracts = relationship('Employment', back_populates='company')
+    employees = relationship('Person', secondary='employment', viewonly=True)
 
 
-class Employee(Base):
+class Employment(Base):
     __repr_args__ = 'salary',
 
     # Column definition
@@ -57,22 +57,22 @@ class Employee(Base):
 
 
 class Person(Base):
-    __repr_args__ = 'first_name', 'last_name', 'email'
+    __repr_args__ = 'first_name', 'last_name', 'gender'
 
     # Column definition
     id = column(Integer, primary_key=True)
     first_name = column(Text)
     last_name = column(Text)
     birthday = column(Date)
-    sex = column(Enum('f', 'm', 'x', name='ck_sex_type'))
+    gender = column(Enum('f', 'm', 'x', name='ck_gender_type'))
     city_id = foreign_key('city.id')
     self_employment_income = column(Integer, nullable=True)
 
     # Relationships
     city = relationship('City', back_populates='citizens')
-    employment = relationship('Employee', back_populates='person')
+    employment = relationship('Employment', back_populates='person')
     employer = relationship(
         'Company',
         back_populates='employees',
-        secondary='employee',
+        secondary='employment',
         uselist=False)
