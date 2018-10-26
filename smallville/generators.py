@@ -1,9 +1,13 @@
 import datetime
+import functools
 import math
 import operator
 import random
 
-from . models import Person
+from . models import (
+    City,
+    Company,
+    Person)
 
 
 def pick_member(collection):
@@ -22,6 +26,71 @@ def pick_member(collection):
     """
     average = sum(random.random() for _n in range(3)) / 3
     return collection[int(average * len(collection))]
+
+
+class CityGenerator(object):
+    """Creates City objects from a name and size parameters
+
+    Returned objects include parameters used for seeding:
+        - seed_company_count: number of companies in the city
+        - seed_population_size: number of people that live in the city
+    """
+    def __init__(self, population_ranges, company_density_range):
+        self._populations = population_ranges
+        self._company_density = company_density_range
+
+    def __call__(self, name, size_code):
+        population = random.gauss(*self._populations[size_code])
+        company_density = random.gauss(*self._company_density)
+        city = City(name=name, size_code=size_code)
+        city.seed_company_count = round(population / company_density)
+        city.seed_population_size = round(population)
+        return city
+
+
+class CompanyGenerator(object):
+    """Creates Company objects with a name, industry and seed parameters.
+
+    Company names are generated from prefix, suffix and often a finalizer part.
+    Industries are picked at random (uniformly) from a list. For each returned
+    company, the following seed attributes are also provided:
+
+        - seed_employee_count: used to calculate the hiring chance
+        - seed_hiring_chance: chance to hire employee, domain [0, 1] (inital 1)
+        - seed_hiring_slowdown: used to calculate the hiring chance, used in
+            conjunction with the employee count. the slowdown parameter is a
+            real number slighlt over one and is raised to the power of the
+            employee count. the reciprocal of this is the hiring chance
+        - seed_salary: function to pick a randmo salary, from a gaussian
+            distribution. The mean and standard deviation are retrieved from
+            parameters based on the city size code.
+    """
+    def __init__(self, industries, names, salary_bands, hiring_slowdown):
+        self._industries = list(industries)
+        self._name_prefix = list(names['prefix'])
+        self._name_suffix = list(names['suffix'])
+        self._name_finalizer = list(names['finalizer'])
+        self._salaries = salary_bands
+        self._hiring = hiring_slowdown
+
+    def __call__(self, city_size):
+        """Returns a Company object with seed parameters based on city size."""
+        company = Company(
+            industry=random.choice(self._industries),
+            name=self.random_name())
+        company.seed_employee_count = 0
+        company.seed_hiring_chance = 1
+        company.seed_hiring_slowdown = random.gauss(*self._hiring[city_size])
+        company.seed_salary = functools.partial(
+            random.gauss, *self._salaries[city_size])
+        return company
+
+    def random_name(self):
+        """Returns a random name for a company."""
+        name_parts = [self._name_prefix, self._name_suffix]
+        if random.random() > 0.33:
+            name_parts.append(self._name_finalizer)
+        return ' '.join(map(random.choice, name_parts))
 
 
 class PopulationGenerator(object):
