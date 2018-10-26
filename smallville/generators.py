@@ -3,6 +3,8 @@ import math
 import operator
 import random
 
+from . models import Person
+
 
 def pick_member(collection):
     """Applies the Central Limit Theorem to random index picking.
@@ -51,11 +53,11 @@ class PopulationGenerator(object):
             last_name_pool = self.last_name_pool(size)
         for _step in range(size):
             gender = self.random_gender()
-            yield {
-                'birthday': self.random_birthday(),
-                'gender': gender,
-                'first_name': random.choice(self._first_names[gender]),
-                'last_name': pick_member(last_name_pool)}
+            yield Person(
+                birthday=self.random_birthday(),
+                gender=gender,
+                first_name=random.choice(self._first_names[gender]),
+                last_name=pick_member(last_name_pool))
 
     def last_name_pool(self, population_size, density_exponent=0.65):
         """Returns a pool of last names, based on population size.
