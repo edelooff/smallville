@@ -1,0 +1,46 @@
+{
+    "hiring_slowdown": {
+        "S": [1.22, 0.05],
+        "M": [1.19, 0.05],
+        "L": [1.16, 0.04],
+        "XL": [1.13, 0.03]
+    },
+    "industries": [
+        "Aerospace", "Agriculture", "Chemical", "Construction", "Defense",
+        "Education", "Energy", "Entertainment", "Financial services", "Food",
+        "Health care", "Hospitality industry", "Information", "Manufacturing",
+        "Media", "Pharmaceutical", "Software", "Telecommunications",
+        "Transport"
+    ],
+    "names": {
+        "prefix": [
+            "Access", "All", "Blue", "Buzz", "Classic", "Cosmic", "Cyber",
+            "Daily", "Dark", "Direct", "Effective", "First", "Free", "Good",
+            "Green", "Heavy", "Hot", "Indigo", "Light", "Mad", "Medium",
+            "Meta", "Metro", "Orange", "Power", "Pure", "Real", "Red", "Retro",
+            "Rush", "Secret", "Shake", "Sharp", "Sleek", "Smart", "Strong",
+            "Subtle", "Think", "Thundering", "True", "Yellow"
+        ],
+        "suffix": [
+            "Avenue", "Base", "Beaver", "Buzz", "Camp", "Cave", "Central",
+            "Clay", "Club", "Community", "Connect", "Direct", "Flow", "Focus",
+            "Fun", "Future", "Garden", "Group", "Guide", "Heat", "Heaven",
+            "Horse", "House", "Idea", "Insight", "Media", "Mill", "Moon",
+            "Nation", "Park", "Place", "Road", "Shack", "Signs", "Star",
+            "Steel", "Stone", "Street", "Sun", "Tech", "Today", "Turbo",
+            "Valley", "Value", "Venom", "Ventures", "Villa", "Ville", "Vine",
+            "Virtue", "Vision", "Way", "Web", "Widget"
+        ],
+        "finalizer": [
+            "& co", "& sons", "Biz", "Company", "Corp", "Inc", "Interactive",
+            "International", "Limited", "Max", "Unlimited",
+            "and Co", "and Sons"
+        ]
+    },
+    "salary_bands": {
+        "S": [25000, 3000],
+        "M": [34000, 5500],
+        "L": [43000, 8000],
+        "XL": [52000, 10500]
+    }
+}

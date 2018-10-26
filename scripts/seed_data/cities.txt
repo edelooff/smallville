@@ -1,0 +1,80 @@
+'t Kalf; S
+'t Zand; S
+Aalsmeer; M
+Abbekerk; S
+Alkmaar; L
+Amstelveen; L
+Amsterdam; XL
+Badhoevedorp; S
+Bennebroek; S
+Bergen; M
+Bloemendaal; S
+Blokker; S
+Castricum; M
+Callantsoog; S
+Cruquius; S
+De Cocksdorp; S
+Den Burg; S
+Den Helder; M
+Diemen; M
+Driemond; S
+Edam; S
+Enkhuizen; M
+Van Ewijcksluis; S
+Groet; S
+Grootschermer; S
+Groote Keeten; S
+Haarlem; L
+Heemskerk; M
+Heemstede; S
+Hilversum; L
+Hoofddorp; M
+IJmuiden; M
+Jisp; S
+Julianadorp; M
+Kleine Sluis; S
+Krommenie; S
+Landsmeer; S
+Lijnden; S
+Medemblik; S
+Middenbeemster; S
+Muiden; S
+Nieuw-Vennep; S
+Neck; S
+Obdam; S
+Den Oever; S
+Oude Niedorp; S
+Oudekerk aan de Amstel; M
+Pampus; S
+Purmerend; M
+Ransdorp; S
+Rustenburg; S
+Schagen; M
+Schermerhorn; S
+Schiphol; M
+Schoorl; S
+Spaarndam; S
+Stammerdijk; S
+Tienhoven; S
+Tuitjenhorn; S
+Twisk; S
+Uitdam; S
+Uitgeest; M
+Uithoorn; M
+Valkeveen; S
+Vatrop; S
+Velsen-Noord; S
+Velsen-Zuid; M
+Vijfhuizen; S
+Volendam; M
+Vrouwenakker; S
+Waarland; S
+Weesp; M
+Wijk aan Zee; S
+Winkel; S
+Wormerveer; M
+Zaandam; M
+Zaanstad; L
+Zandvoort; M
+Zwaagdijk; S
+Zwanenburg; S
