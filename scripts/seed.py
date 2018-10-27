@@ -50,17 +50,17 @@ def seed_json(seed_file):
         return json.load(fp)
 
 
-def field_splitter(split_on):
+def shuffle_infix(name):
+    """Pulls the surname's infix to the front of the name, from the end."""
+    return ' '.join(reversed(name.split(', ')))
+
+
+def split_field(split_on):
     """Returns a function that splits input text, based on given parameter."""
     def _splitter(text):
         return map(str.strip, text.split(split_on))
 
     return _splitter
-
-
-def shuffle_infix(name):
-    """Pulls the surname's infix to the front of the name, from the end."""
-    return ' '.join(reversed(name.split(', ')))
 
 
 # #############################################################################
@@ -72,7 +72,7 @@ def create_cities(session):
     company_params['names']['finalizer'] += company_params['names']['suffix']
     make_company = CompanyGenerator(**company_params)
     make_city = city_generator(**seed_json('cities'))
-    names_and_sizes = map(field_splitter(';'), seed_entries('cities'))
+    names_and_sizes = map(split_field(';'), seed_entries('cities'))
     for city in itertools.starmap(make_city, names_and_sizes):
         size_args = itertools.repeat(city.size_code, city.seed_company_count)
         city.companies.extend(map(make_company, size_args))

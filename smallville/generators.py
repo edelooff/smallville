@@ -10,24 +10,6 @@ from . models import (
     Person)
 
 
-def pick_member(collection):
-    """Applies the Central Limit Theorem to random index picking.
-
-    The CLT states that the normalized sum of independent variables tends
-    toward a normal distribution. This function averages three results from a
-    uniform random function in the domain [0, 1) and stretches that over the
-    length of the given collection to pick a random member. The resulting
-    distribution is close to normal, but truncated within the range of the
-    collection, without the need for clamping or rejection.
-
-    Why exactly three random picks approximate a normal distribution very well
-    but four or more don't (too narrow) is still unclear to me and is left as
-    an exercise for a later date. For now we'll call it a success.
-    """
-    average = sum(random.random() for _n in range(3)) / 3
-    return collection[int(average * len(collection))]
-
-
 class CompanyGenerator(object):
     """Creates Company objects with a name, industry and seed parameters.
 
@@ -169,3 +151,21 @@ def city_generator(population_ranges, company_density_range):
         city.seed_population_size = round(population)
         return city
     return _generator
+
+
+def pick_member(collection):
+    """Applies the Central Limit Theorem to random index picking.
+
+    The CLT states that the normalized sum of independent variables tends
+    toward a normal distribution. This function averages three results from a
+    uniform random function in the domain [0, 1) and stretches that over the
+    length of the given collection to pick a random member. The resulting
+    distribution is close to normal, but truncated within the range of the
+    collection, without the need for clamping or rejection.
+
+    Why exactly three random picks approximate a normal distribution very well
+    but four or more don't (too narrow) is still unclear to me and is left as
+    an exercise for a later date. For now we'll call it a success.
+    """
+    average = sum(random.random() for _n in range(3)) / 3
+    return collection[int(average * len(collection))]
