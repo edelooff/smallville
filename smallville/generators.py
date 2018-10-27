@@ -28,26 +28,6 @@ def pick_member(collection):
     return collection[int(average * len(collection))]
 
 
-class CityGenerator(object):
-    """Creates City objects from a name and size parameters
-
-    Returned objects include parameters used for seeding:
-        - seed_company_count: number of companies in the city
-        - seed_population_size: number of people that live in the city
-    """
-    def __init__(self, population_ranges, company_density_range):
-        self._populations = population_ranges
-        self._company_density = company_density_range
-
-    def __call__(self, name, size_code):
-        population = random.gauss(*self._populations[size_code])
-        company_density = random.gauss(*self._company_density)
-        city = City(name=name, size_code=size_code)
-        city.seed_company_count = round(population / company_density)
-        city.seed_population_size = round(population)
-        return city
-
-
 class CompanyGenerator(object):
     """Creates Company objects with a name, industry and seed parameters.
 
@@ -164,3 +144,28 @@ class PopulationGenerator(object):
         if male > 0.95 and female > 0.95:
             return 'x'
         return 'f' if female > male else 'm'
+
+
+def city_generator(population_ranges, company_density_range):
+    """Returns a function to generate City objects and seed parameters.
+
+    `population_ranges`: a dict with 2-tuples of (mean, stddev) to generate
+        a population size from, mapped to the city size code.
+    `company_density_range`: a 2-tuple of (mean, stddev) that is used to
+        determine the number of companies in the city
+
+    The returned function requires a `name` for the city and a `size`, the
+    latter of which is used to look up the population parameters.
+
+    Returned City includes parameters used for seeding:
+        - `seed_company_count`: number of companies in the city
+        - `seed_population_size`: number of people that live in the city
+    """
+    def _generator(name, size):
+        population = random.gauss(*population_ranges[size])
+        company_density = random.gauss(*company_density_range)
+        city = City(name=name, size_code=size)
+        city.seed_company_count = round(population / company_density)
+        city.seed_population_size = round(population)
+        return city
+    return _generator

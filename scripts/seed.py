@@ -11,9 +11,9 @@ from sqlalchemy.orm import sessionmaker
 
 from smallville.base import Base
 from smallville.generators import (
-    CityGenerator,
     CompanyGenerator,
-    PopulationGenerator)
+    PopulationGenerator,
+    city_generator)
 from smallville.models import Employment
 
 
@@ -42,6 +42,14 @@ def seed_entries(seed_file):
                 yield line
 
 
+def seed_json(seed_file):
+    """Returns JSON loaded from given filename."""
+    here = os.path.dirname(__file__)
+    path = os.path.join(here, 'seed_data', seed_file) + '.json'
+    with open(path) as fp:
+        return json.load(fp)
+
+
 def field_splitter(split_on):
     """Returns a function that splits input text, based on given parameter."""
     def _splitter(text):
@@ -58,16 +66,6 @@ def shuffle_infix(name):
 # #############################################################################
 # Seed helper functions
 #
-def city_generator():
-    BUSINESS_DENSITY = 80, 7
-    CITY_POPULATION = {
-        'S': (900, 200),
-        'M': (3600, 800),
-        'L': (18000, 4000),
-        'XL': (55000, 2500)}
-    return CityGenerator(CITY_POPULATION, BUSINESS_DENSITY)
-
-
 def company_generator():
     with open('seed_data/business.json') as fp:
         params = json.load(fp)
@@ -91,9 +89,10 @@ def population_generator():
 #
 def create_cities(session):
     """Creates cities for people to live in and companies to work at."""
-    city_params = map(field_splitter(';'), seed_entries('cities.txt'))
+    make_city = city_generator(**seed_json('cities'))
     make_company = company_generator()
-    for city in itertools.starmap(city_generator(), city_params):
+    names_and_sizes = map(field_splitter(';'), seed_entries('cities.txt'))
+    for city in itertools.starmap(make_city, names_and_sizes):
         size_args = itertools.repeat(city.size_code, city.seed_company_count)
         city.companies.extend(map(make_company, size_args))
         session.add(city)
