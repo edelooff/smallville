@@ -35,7 +35,7 @@ def connect(db, user=None, echo=False):
 def seed_entries(seed_file):
     """Returns trimmed, non-empty, non-comment lines from a named seed file."""
     here = os.path.dirname(__file__)
-    filename = os.path.join(here, 'seed_data', seed_file)
+    filename = os.path.join(here, 'seed_data', seed_file) + '.txt'
     with open(filename) as fp:
         for line in map(str.strip, fp):
             if line and not line.startswith('#'):
@@ -64,34 +64,15 @@ def shuffle_infix(name):
 
 
 # #############################################################################
-# Seed helper functions
-#
-def company_generator():
-    with open('seed_data/business.json') as fp:
-        params = json.load(fp)
-    params['names']['finalizer'] += params['names']['suffix']
-    return CompanyGenerator(
-        params['industries'],
-        params['names'],
-        params['salary_bands'],
-        params['hiring_slowdown'])
-
-
-def population_generator():
-    return PopulationGenerator(
-        map(shuffle_infix, seed_entries('last_names.txt')),
-        seed_entries('first_names_feminine.txt'),
-        seed_entries('first_names_masculine.txt'))
-
-
-# #############################################################################
 # Seed functions
 #
 def create_cities(session):
     """Creates cities for people to live in and companies to work at."""
+    company_params = seed_json('business')
+    company_params['names']['finalizer'] += company_params['names']['suffix']
+    make_company = CompanyGenerator(**company_params)
     make_city = city_generator(**seed_json('cities'))
-    make_company = company_generator()
-    names_and_sizes = map(field_splitter(';'), seed_entries('cities.txt'))
+    names_and_sizes = map(field_splitter(';'), seed_entries('cities'))
     for city in itertools.starmap(make_city, names_and_sizes):
         size_args = itertools.repeat(city.size_code, city.seed_company_count)
         city.companies.extend(map(make_company, size_args))
@@ -120,7 +101,10 @@ def create_population(session, cities):
             session.bulk_save_objects(filter(None, group))
             del group[:]
 
-    make_people = population_generator()
+    make_people = PopulationGenerator(
+        map(shuffle_infix, seed_entries('last_names')),
+        seed_entries('first_names_feminine'),
+        seed_entries('first_names_masculine'))
     serial = itertools.count(1)
     people, employment = [], []
     for city in cities:
