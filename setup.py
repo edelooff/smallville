@@ -22,7 +22,8 @@ setup(
     url='https://github.com/edelooff/smallville',
     packages=find_packages(),
     install_requires=[
-        'sqlalchemy'],
+        'sqlalchemy',
+        'psycopg2-binary'],
     zip_safe=False,
     classifiers=[
         'Development Status :: 4 - Beta',
