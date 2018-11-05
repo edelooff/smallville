@@ -1,5 +1,5 @@
-from . models import (  # noqa
-  City,
-  Company,
-  Employment,
-  Person)
+from . models import (
+    City,
+    Company,
+    Employment,
+    Person)
