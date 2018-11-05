@@ -1,3 +1,5 @@
+from itertools import chain
+
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.sqltypes import (
     Integer,
@@ -25,6 +27,22 @@ class City(Base):
     # Relationships
     citizens = relationship('Person', back_populates='city')
     companies = relationship('Company', back_populates='city')
+    _links_higher = relationship(
+        'TransportLink',
+        back_populates='lower_city',
+        foreign_keys='TransportLink.lower_city_id')
+    _links_lower = relationship(
+        'TransportLink',
+        back_populates='higher_city',
+        foreign_keys='TransportLink.higher_city_id')
+
+    @property
+    def transport_links(self):
+        """Mapping of all transport links and associated costs."""
+        def link_getter(relative):
+            for link in getattr(self, f'_links_{relative}'):
+                yield getattr(link, f'{relative}_city'), link.distance
+        return dict(chain(link_getter('higher'), link_getter('lower')))
 
 
 class Company(Base):
@@ -76,3 +94,22 @@ class Person(Base):
         back_populates='employees',
         secondary='employment',
         uselist=False)
+
+
+class TransportLink(Base):
+    __repr_args__ = 'lower_city_id', 'higher_city_id', 'distance'
+
+    # Column definition
+    lower_city_id = foreign_key('city.id', index=False, primary_key=True)
+    higher_city_id = foreign_key('city.id', primary_key=True)
+    distance = column(Integer)
+
+    # Relationships
+    lower_city = relationship(
+        'City',
+        back_populates='_links_higher',
+        foreign_keys=lower_city_id)
+    higher_city = relationship(
+        'City',
+        back_populates='_links_lower',
+        foreign_keys=higher_city_id)

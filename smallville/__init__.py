@@ -2,4 +2,5 @@ from . models import (
     City,
     Company,
     Employment,
-    Person)
+    Person,
+    TransportLink)
