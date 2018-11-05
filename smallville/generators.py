@@ -1,3 +1,4 @@
+import bisect
 import datetime
 import functools
 import math
@@ -117,15 +118,12 @@ class PopulationGenerator(object):
     def random_gender():
         """Returns a random gender for a person: male, female or non-binary.
 
-        There is a slight bias towards the female gender, as observed in the
-        world population. Non-binary sexes are returned at a rate around 1 in
-        400, following estimated prevalence for the US and UK.
+        There is a slight bias towards the female gender, as observed in Dutch
+        census data (as of 2018). Non-binary genders are returned at a rate of
+        1 in 400, following estimated prevalence for the US and UK.
         """
-        male = random.uniform(0, 1)
-        female = random.uniform(0.01, 1)
-        if male > 0.95 and female > 0.95:
-            return 'x'
-        return 'f' if female > male else 'm'
+        index = bisect.bisect([496, 1000], random.uniform(0, 1002.5))
+        return 'mfx'[index]
 
 
 def city_generator(population_ranges, company_density_range):
