@@ -120,6 +120,15 @@ def create_population(session, cities):
 
 def employ_person(person, companies):
     """Assign the person an employer from a list of companies."""
+    def role_and_salary(company):
+        percentile = random.uniform(0, 100)
+        if percentile < 85:
+            return {'role': 'worker', 'salary': company.seed_salary()}
+        salaries = company.seed_salary(), company.seed_salary()
+        if percentile < 98:
+            return {'role': 'manager', 'salary': max(salaries)}
+        return {'role': 'director', 'salary': sum(salaries)}
+
     for company in companies:
         if random.random() < company.seed_hiring_chance:
             company.seed_employee_count += 1
@@ -128,8 +137,7 @@ def employ_person(person, companies):
             return Employment(
                 person_id=person.id,
                 company_id=company.id,
-                salary=company.seed_salary(),
-                role='worker')
+                **role_and_salary(company))
 
 
 def main():
