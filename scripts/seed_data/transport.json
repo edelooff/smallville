@@ -1,0 +1,4 @@
+{
+    "distance_range": [10, 25],
+    "max_hop_distance": 3
+}

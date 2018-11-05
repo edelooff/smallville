@@ -14,7 +14,9 @@ from smallville.generators import (
     CompanyGenerator,
     PopulationGenerator,
     city_generator)
-from smallville.models import Employment
+from smallville.models import (
+    Employment,
+    TransportLink)
 
 
 # #############################################################################
@@ -81,6 +83,35 @@ def create_cities(session):
         yield city
 
 
+def create_transport_network(session, cities):
+    """Creates a number of transport links between cities.
+
+    This function creates a network that necessarily includes all cities in the
+    graph. It achieves this by shuffling the city list and connecting every
+    city to the next in the list, and finally connecting the first and last.
+
+    To create a graph where distant nodes are (mostly) limited to `n` hops,
+    a number of chains equal to the n-th root of the number of nodes should be
+    created. Concretely, a graph of 1000 nodes with 10 such chains will have
+    most (if not all) nodes within 3 hops of each other.
+    """
+    params = seed_json('transport')
+    chain_count = len(cities) ** (1 / params['max_hop_distance'])
+
+    created_links = set()
+    for _repeat in range(round(chain_count - 0.25)):  # biased rounding
+        random.shuffle(cities)
+        for city, neighbour in pairwise_full_circle(cities):
+            lower, higher = sorted((city, neighbour), key=lambda city: city.id)
+            if (lower, higher) in created_links:
+                continue
+            created_links.add((lower, higher))
+            yield TransportLink(
+                lower_city=lower,
+                higher_city=higher,
+                distance=round(random.uniform(*params['distance_range'])))
+
+
 def create_population(session, cities):
     """Creates a population for each city, and puts them to work.
 
@@ -140,6 +171,17 @@ def employ_person(person, companies):
                 **role_and_salary(company))
 
 
+def pairwise_full_circle(sequence):
+    """Yields 2-tuples of two sequential items from the sequene.
+
+    The final value contains a pair of the last item from the sequence
+    combined with the very first item from the sequence.
+    """
+    this, ahead = itertools.tee(sequence)
+    ahead = itertools.chain(ahead, [next(ahead)])
+    return zip(this, ahead)
+
+
 def main():
     def emit(text, start_time=time.time()):
         elapsed = round((time.time() - start_time), 1)
@@ -159,6 +201,10 @@ def main():
         sum(city.seed_company_count for city in cities)))
     emit('  Total population size: {}'.format(
         sum(city.seed_population_size for city in cities)))
+
+    emit('Creating transport network ..')
+    network = list(create_transport_network(session, cities))
+    emit(f'  Number of transport links: {len(network)}')
 
     emit('Creating population and employment ..')
     create_population(session, cities)
