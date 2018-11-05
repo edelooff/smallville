@@ -41,7 +41,7 @@ The seed script will connect to a database named ``smallville`` as the current u
 
 .. code-block:: bash
 
-    sudo -u postgres createdb tempo -O $(whoami)
+    sudo -u postgres createdb smallville -O $(whoami)
 
 
 Running the seed script
