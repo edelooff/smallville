@@ -1,58 +1,98 @@
 import collections
-import heapq
 
 
 class Vertex(object):
-    """Queue entry for VertexQueue.
+    """Queue entry for VertexQueue, storing a destination and its cost."""
+    __slots__ = 'cost', 'vertex'
 
-    Each entry represents a path, with cost and destination vertex, as well as
-    a validity flag. Removing an entry from the heap would require a costly
-    search, so instead, the entry's validity flag is set to False, indicating
-    that is should be discarded when retrieved from the heap.
-    """
-    __slots__ = 'cost', 'vertex', 'valid'
-
-    def __init__(self, cost, vertex):
+    def __init__(self, vertex, cost):
         self.cost = cost
         self.vertex = vertex
-        self.valid = True
 
     def __lt__(self, other):
         return self.cost < other.cost
 
 
 class VertexQueue(object):
-    """A priority queue for vertex+distance storage.
+    """A priority queue for vertex+distance storage, backed by a binary heap.
 
-    Uses a heap for minimum cost-sorted entries. When the cost for an entry
-    is altered, the existing entry is declared invalid and will be discarded
-    upon retrieval during iteration.
+    Iteration will pop the lowest value off the heap and return a 2-tuple of
+    (vertex, cost). Adding or updating vertices and cost is done by assigning
+    the cost to the vertex through subscription (`q[vertex] = cost`).
 
-    Iteration will yield the next lowest and valid vertex stored in the queue.
+    When the cost for a destination vertex is updated (only reductions are
+    allowed, though not enforced at runtime), its position is looked up, its
+    value altered, and it's moved to the correct position in the heap.
     """
     def __init__(self, vertex_dict=None):
         self._heap = []
-        self.vertex_map = {}
+        self._index_map = {}
         if vertex_dict is not None:
             for vertex, cost in vertex_dict.items():
-                self.add(vertex, cost)
+                self[vertex] = cost
 
     def __iter__(self):
         while self._heap:
-            entry = heapq.heappop(self._heap)
-            if entry.valid:
-                yield entry.vertex, entry.cost
+            entry = self._heap[0]
+            del self._index_map[entry.vertex]
+            tail = self._heap.pop()
+            if self._heap:
+                self._siftdown(0, tail)
+            yield entry.vertex, entry.cost
 
-    def add(self, vertex, cost):
-        entry = Vertex(cost, vertex)
-        self.vertex_map[vertex] = entry
-        heapq.heappush(self._heap, entry)
+    def __setitem__(self, vertex, cost):
+        """Updates existing entry in the heap, or inserts a new one."""
+        pos = self._index_map.get(vertex)
+        if pos is not None:
+            entry = self._heap[pos]
+            entry.cost = cost
+        else:
+            pos = len(self._heap)
+            entry = Vertex(vertex, cost)
+            self._heap.append(entry)
+        self._siftup(pos, entry)
 
-    def update_cost(self, vertex, cost):
-        existing = self.vertex_map.get(vertex)
-        if existing is not None:
-            existing.valid = False
-        self.add(vertex, cost)
+    def _siftdown(self, pos, entry):
+        """Moves the item at pos to its correct position deeper in the heap.
+
+        This heavily borrows from the Python heapq implementation which uses
+        the elegant intuition that items inserted at the root (following
+        extraction) tend to be large. Instead of comparing the new root value,
+        the heap is first restored, successively moving up the smaller of two
+        child nodes.
+
+        Once the root-inserted value hits the bottom of the heap, it is then
+        sifted up as if it had been inserted at this position. This has the
+        same worst-case complexity (2 log n), but works out significantly
+        better in practice (requiring closer to (log n) comparisons.)
+        """
+        heap, imap = self._heap, self._index_map
+        heaplen = len(heap)
+        child_pos = pos * 2 + 1
+        while child_pos < heaplen:
+            right_pos = child_pos + 1
+            if right_pos < heaplen and heap[right_pos] < heap[child_pos]:
+                child_pos = right_pos
+            child_entry = heap[child_pos]
+            heap[pos] = child_entry
+            imap[child_entry.vertex] = pos
+            pos = child_pos
+            child_pos = pos * 2 + 1
+        self._siftup(pos, entry)
+
+    def _siftup(self, pos, entry):
+        """Swaps an entry with its parent until the heap is restored."""
+        heap, imap = self._heap, self._index_map
+        while pos > 0:
+            parent_pos = (pos - 1) // 2
+            parent_entry = self._heap[parent_pos]
+            if not entry < parent_entry:
+                break
+            heap[pos] = parent_entry
+            imap[parent_entry.vertex] = pos
+            pos = parent_pos
+        heap[pos] = entry
+        imap[entry.vertex] = pos
 
 
 def construct_path(vertex, reverse_paths):
@@ -81,5 +121,5 @@ def dijkstra(graph, start):
             if new_distance < distance[neighbour]:
                 distance[neighbour] = new_distance
                 reverse_path[neighbour] = vertex
-                queue.update_cost(neighbour, new_distance)
+                queue[neighbour] = new_distance
     return distance, reverse_path
