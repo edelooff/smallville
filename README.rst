@@ -28,9 +28,9 @@ To start using ``SmallVille``, the easiest way is to clone this repository and i
 .. code-block:: bash
 
     git clone https://github.com/edelooff/smallville.git
+    cd smallville
     virtualenv -p python3 env
     source env/bin/activate
-    cd smallville
     pip install -e .
 
 
@@ -52,6 +52,7 @@ Once the database is created, the seed script can be used to populate it. For th
 .. code-block:: bash
 
     cd /path/to/smallville
+    source env/bin/activate
     python scripts/seed.py
     psql smallville
 
