@@ -97,19 +97,17 @@ def create_transport_network(session, cities):
     """
     params = seed_json('transport')
     chain_count = len(cities) ** (1 / params['max_hop_distance'])
+    dist = lambda: round(random.uniform(*params['distance_range']))
 
     created_links = set()
     for _repeat in range(round(chain_count - 0.25)):  # biased rounding
         random.shuffle(cities)
         for city, neighbour in pairwise_full_circle(cities):
             lower, higher = sorted((city, neighbour), key=lambda city: city.id)
-            if (lower, higher) in created_links:
-                continue
-            created_links.add((lower, higher))
-            yield TransportLink(
-                lower_city=lower,
-                higher_city=higher,
-                distance=round(random.uniform(*params['distance_range'])))
+            if (lower, higher) not in created_links:
+                created_links.add((lower, higher))
+                yield TransportLink(
+                    lower_city=lower, higher_city=higher, distance=dist())
 
 
 def create_population(session, cities):
