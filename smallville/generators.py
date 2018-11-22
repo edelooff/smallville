@@ -11,7 +11,7 @@ from . models import (
     Person)
 
 
-class CompanyGenerator(object):
+class CompanyGenerator:
     """Creates Company objects with a name, industry and seed parameters.
 
     Company names are generated from prefix, suffix and often a finalizer part.
@@ -56,7 +56,7 @@ class CompanyGenerator(object):
         return ' '.join(map(random.choice, name_parts))
 
 
-class PopulationGenerator(object):
+class PopulationGenerator:
     BIRTHDATE_RANGE = datetime.date(1980, 1, 1), datetime.date(1998, 1, 1)
 
     def __init__(

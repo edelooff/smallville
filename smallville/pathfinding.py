@@ -1,7 +1,7 @@
 import collections
 
 
-class Vertex(object):
+class Vertex:
     """Queue entry for VertexQueue, storing a destination and its cost."""
     __slots__ = 'cost', 'vertex'
 
@@ -13,7 +13,7 @@ class Vertex(object):
         return self.cost < other.cost
 
 
-class VertexQueue(object):
+class VertexQueue:
     """A priority queue for vertex+distance storage, backed by a binary heap.
 
     Iteration will pop the lowest value off the heap and return a 2-tuple of

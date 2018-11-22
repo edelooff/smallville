@@ -97,7 +97,7 @@ def create_transport_network(session, cities):
     """
     params = seed_json('transport')
     chain_count = len(cities) ** (1 / params['max_hop_distance'])
-    dist = lambda: round(random.uniform(*params['distance_range']))
+    dist = lambda: round(random.uniform(*params['distance_range']))  # noqa
 
     created_links = set()
     for _repeat in range(round(chain_count - 0.25)):  # biased rounding

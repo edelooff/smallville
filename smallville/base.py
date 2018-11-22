@@ -25,7 +25,7 @@ def metadata():
 
 
 @as_declarative(metadata=metadata())
-class Base(object):
+class Base:
     """Extended SQLAlchemy declarative base class."""
     @declared_attr
     def __tablename__(cls):
