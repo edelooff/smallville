@@ -1,5 +1,5 @@
 {
-	"company_density_range": [80, 7],
+	"company_density_range": [60, 5],
 	"population_ranges": {
 		"S": [900, 200],
 		"M": [3600, 800],
