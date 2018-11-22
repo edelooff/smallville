@@ -116,7 +116,7 @@ def dijkstra(graph, start):
     reverse_path = {}
 
     for vertex, dist_v in queue:
-        for neighbour, dist_n in vertex.paths.items():
+        for neighbour, dist_n in vertex.transport_links.items():
             new_distance = dist_v + dist_n
             if new_distance < distance[neighbour]:
                 distance[neighbour] = new_distance

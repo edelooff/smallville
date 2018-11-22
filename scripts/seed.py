@@ -18,6 +18,7 @@ from smallville.models import (
     Employment,
     Person,
     TransportLink)
+from smallville.pathfinding import dijkstra
 
 
 class BulkInserter:
@@ -185,6 +186,22 @@ def create_population(session, cities):
                 batch.add(employ_person(person, city.companies))
 
 
+def create_commuters(session, cities):
+    """For the unemployed, searches for employment nearby, or self-employment.
+    """
+    neighbouring = {}
+    with BulkInserter(session, Employment) as batch:
+        for person in unemployed_people(session):
+            city = person.city
+            if city not in neighbouring:
+                distance, _previous = dijkstra(cities, city)
+                neighbours = sorted(distance, key=distance.__getitem__)
+                neighbouring[city] = neighbours[1:16]
+            companies = itertools.chain.from_iterable(
+                neighbour.companies for neighbour in neighbouring[city])
+            batch.add(employ_person(person, companies))
+
+
 def employ_person(person, companies):
     """Assign the person an employer from a list of companies."""
     def role_and_salary(company):
@@ -205,6 +222,12 @@ def employ_person(person, companies):
                 person_id=person.id,
                 company_id=company.id,
                 **role_and_salary(company))
+
+
+def unemployed_people(session):
+    """Returns a query for people without an employer (Company)."""
+    employment_q = session.query(Employment).filter_by(person_id=Person.id)
+    return session.query(Person).filter(~employment_q.exists()).yield_per(500)
 
 
 def pairwise_full_circle(sequence):
@@ -244,6 +267,7 @@ def main():
 
     emit('Creating population and employment ..')
     create_population(session, cities)
+    create_commuters(session, cities)
 
     emit('Committing ..')
     session.commit()
