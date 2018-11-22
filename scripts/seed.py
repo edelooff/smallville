@@ -16,7 +16,53 @@ from smallville.generators import (
     city_generator)
 from smallville.models import (
     Employment,
+    Person,
     TransportLink)
+
+
+class BulkInserter:
+    """Chunked bulk insert utility.
+
+    This provides a wrapper around SQLAlchemy's Session.bulk_save_objects,
+    providing both grouping of inserts by their mapped class, as well as
+    chunked inserts based on a configurable threshold.
+
+    A flush is triggered once the number of pending objects meets the threshold
+    value. The inserts are then performed in the order of the mappings as
+    provided on initiation of the BulkInserter. This allows non-cyclical
+    foreign keys to resolve correctly (provided the Mapping order is correct.)
+    """
+    def __init__(self, session, *mappings, threshold=2000):
+        self.session = session
+        self.mappings = mappings
+        self.threshold = threshold
+        self._objects = {mapping: [] for mapping in mappings}
+        self._pending = 0
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        if type is None:
+            self.flush()
+
+    def add(self, obj):
+        """Adds an object to the pending collection, or nothing when `None`.
+
+        Automatically flushes all pending objects when threshold is reached.
+        """
+        if obj is not None:
+            self._objects[type(obj)].append(obj)
+            self._pending += 1
+            if self._pending >= self.threshold:
+                self.flush()
+
+    def flush(self):
+        """Bulk-saves objects to the database, in mapping order."""
+        for mapping in self.mappings:
+            self.session.bulk_save_objects(self._objects[mapping])
+            self._objects[mapping] = []
+        self._pending = 0
 
 
 # #############################################################################
@@ -125,26 +171,18 @@ def create_population(session, cities):
     These changes combined reduce insert time by approximately 60%, and reduce
     the memory footprint from around 1GB to ~50MB.
     """
-    def flush_pending(*object_groups):
-        for group in object_groups:
-            session.bulk_save_objects(filter(None, group))
-            del group[:]
-
     make_people = PopulationGenerator(
         map(shuffle_infix, seed_entries('last_names')),
         seed_entries('first_names_feminine'),
         seed_entries('first_names_masculine'))
     serial = itertools.count(1)
-    people, employment = [], []
-    for city in cities:
-        for person in make_people(city.seed_population_size):
-            person.id = next(serial)
-            person.city_id = city.id
-            people.append(person)
-            employment.append(employ_person(person, city.companies))
-            if not person.id % 2000:
-                flush_pending(people, employment)
-    flush_pending(people, employment)
+    with BulkInserter(session, Person, Employment) as batch:
+        for city in cities:
+            for person in make_people(city.seed_population_size):
+                person.id = next(serial)
+                person.city_id = city.id
+                batch.add(person)
+                batch.add(employ_person(person, city.companies))
 
 
 def employ_person(person, companies):
