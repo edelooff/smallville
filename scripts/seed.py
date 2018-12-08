@@ -6,7 +6,9 @@ import os
 import random
 import time
 
-from sqlalchemy import create_engine
+from sqlalchemy import (
+    create_engine,
+    null)
 from sqlalchemy.orm import sessionmaker
 
 from smallville.base import Base
@@ -15,6 +17,7 @@ from smallville.generators import (
     PopulationGenerator,
     city_generator)
 from smallville.models import (
+    Company,
     Employment,
     Person,
     TransportLink)
@@ -186,8 +189,14 @@ def create_population(session, cities):
                 batch.add(employ_person(person, city.companies))
 
 
-def create_commuters(session, cities):
-    """For the unemployed, searches for employment nearby, or self-employment.
+def create_commuters(session, cities, closest_n=15):
+    """For the unemployed, searches for employment in nearby cities.
+
+    For each person in the pool of unemployed people, an atempt is made to
+    employ them in cities nearby the one they live in. A list of nearby cities
+    is made based on results from Dijkstra's shortest path algorithm, and an
+    attempt at employment is made at each employer in a number of nearby cities
+    taken from `closest_n`.
     """
     neighbouring = {}
     with BulkInserter(session, Employment) as batch:
@@ -196,10 +205,20 @@ def create_commuters(session, cities):
             if city not in neighbouring:
                 distance, _previous = dijkstra(cities, city)
                 neighbours = sorted(distance, key=distance.__getitem__)
-                neighbouring[city] = neighbours[1:16]
+                neighbouring[city] = neighbours[1:closest_n + 1]
             companies = itertools.chain.from_iterable(
                 neighbour.companies for neighbour in neighbouring[city])
             batch.add(employ_person(person, companies))
+
+
+def create_self_employment(session):
+    """Assigns income from self-employment to share of unemployed people."""
+    for person in unemployed_people(session):
+        if random.random() > 0.5:
+            city_salary = person.city.companies[0].seed_salary()
+            salary_multiplier = random.uniform(0.5, 1.2)
+            person.self_employment_income = city_salary * salary_multiplier
+    session.commit()
 
 
 def employ_person(person, companies):
@@ -267,7 +286,19 @@ def main():
 
     emit('Creating population and employment ..')
     create_population(session, cities)
+    emit('  Number of locally employed people: {}'.format(
+        session.query(Employment).count()))
     create_commuters(session, cities)
+    emit('  Number of commuters: {}'.format(
+        session.query(Employment)
+        .join(Employment.person, Employment.company)
+        .filter(Person.city_id != Company.city_id)
+        .count()))
+    create_self_employment(session)
+    emit('  Number of (partially) self-employed: {}'.format(
+        session.query(Person)
+        .filter(Person.self_employment_income != null())
+        .count()))
 
     emit('Committing ..')
     session.commit()
