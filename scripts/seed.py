@@ -24,8 +24,8 @@ from smallville.models import (
 from smallville.pathfinding import dijkstra
 
 
-class BulkInserter:
-    """Chunked bulk insert utility.
+class BulkSaver:
+    """Chunked bulk insert/update utility.
 
     This provides a wrapper around SQLAlchemy's Session.bulk_save_objects,
     providing both grouping of inserts by their mapped class, as well as
@@ -33,7 +33,7 @@ class BulkInserter:
 
     A flush is triggered once the number of pending objects meets the threshold
     value. The inserts are then performed in the order of the mappings as
-    provided on initiation of the BulkInserter. This allows non-cyclical
+    provided on initiation of the BulkSaver. This allows non-cyclical
     foreign keys to resolve correctly (provided the Mapping order is correct.)
     """
     def __init__(self, session, *mappings, threshold=2000):
@@ -179,7 +179,7 @@ def create_population(session, cities):
         seed_entries('first_names_feminine'),
         seed_entries('first_names_masculine'))
     serial = itertools.count(1)
-    with BulkInserter(session, Person, Employment) as batch:
+    with BulkSaver(session, Person, Employment) as batch:
         for city in cities:
             for person in make_people(city.seed_population_size):
                 person.id = next(serial)
@@ -198,7 +198,7 @@ def create_commuters(session, cities, closest_n=15):
     taken from `closest_n`.
     """
     neighbouring = {}
-    with BulkInserter(session, Employment) as batch:
+    with BulkSaver(session, Employment) as batch:
         for person in unemployed_people(session):
             city = person.city
             if city not in neighbouring:
@@ -212,12 +212,13 @@ def create_commuters(session, cities, closest_n=15):
 
 def create_self_employment(session):
     """Assigns income from self-employment to share of unemployed people."""
-    for person in unemployed_people(session):
-        if random.random() > 0.5:
-            city_salary = person.city.companies[0].seed_salary()
-            salary_multiplier = random.uniform(0.5, 1.2)
-            person.self_employment_income = city_salary * salary_multiplier
-    session.commit()
+    with BulkSaver(session, Person) as batch:
+        for person in unemployed_people(session):
+            if random.random() > 0.5:
+                city_salary = person.city.companies[0].seed_salary()
+                salary_multiplier = random.uniform(0.5, 1.2)
+                person.self_employment_income = city_salary * salary_multiplier
+                batch.add(person)
 
 
 def employ_person(person, companies):
