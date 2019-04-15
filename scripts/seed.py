@@ -64,7 +64,7 @@ class BulkInserter:
     def flush(self):
         """Bulk-saves objects to the database, in mapping order."""
         for mapping in self.mappings:
-            self.session.bulk_save_objects(self._objects[mapping])
+            self.session.bulk_save_objects(self._objects.pop(mapping))
             self._objects[mapping] = []
         self._pending = 0
 
@@ -80,8 +80,7 @@ def connect(db, user=None, echo=False):
     """
     if user is None:
         user = getpass.getuser()
-    engine_url = 'postgres://{user}@/{db}'.format(user=user, db=db)
-    return create_engine(engine_url, echo=echo)
+    return create_engine(f'postgres://{user}@/{db}', echo=echo)
 
 
 def seed_entries(seed_file):
