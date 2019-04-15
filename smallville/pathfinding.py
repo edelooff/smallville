@@ -1,6 +1,8 @@
 import collections
 
-from . queues import BinaryQueue
+from . queues import (  # noqa
+    BinaryQueue,
+    PairingQueue)
 
 
 def construct_path(vertex, reverse_paths):
@@ -12,7 +14,7 @@ def construct_path(vertex, reverse_paths):
     return list(reversed(path))
 
 
-def dijkstra(graph, start):
+def dijkstra(graph, start, queue_class=BinaryQueue):
     """Given a graph and start, returns distances to all reachable vertices.
 
     This implementation uses a binary heap priority queue to keep track of
@@ -21,7 +23,7 @@ def dijkstra(graph, start):
     """
     distance = collections.defaultdict(lambda: float('inf'))
     distance[start] = 0
-    queue = BinaryQueue(distance)
+    queue = queue_class(distance)
     reverse_path = {}
 
     for vertex, dist_v in queue:
