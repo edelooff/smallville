@@ -41,6 +41,7 @@ class BulkSaver:
         self.mappings = mappings
         self.threshold = threshold
         self._objects = {mapping: [] for mapping in mappings}
+        self._mappings = {mapping: [] for mapping in mappings}
         self._pending = 0
 
     def __enter__(self):
@@ -50,20 +51,35 @@ class BulkSaver:
         if type is None:
             self.flush()
 
-    def add(self, obj):
+    def _increment_pending(self):
+        """Increments the 'pending' count and flushes when over threshold."""
+        self._pending += 1
+        if self._pending >= self.threshold:
+            self.flush()
+
+    def add_mapping(self, type_, mapping):
+        """Adds a type+mapping to the collection, or nothing when `None`.
+
+        Automatically flushes all pending objects when threshold is reached.
+        """
+        if mapping is not None:
+            self._mappings[type_].append(mapping)
+            self._increment_pending()
+
+    def add_object(self, obj):
         """Adds an object to the pending collection, or nothing when `None`.
 
         Automatically flushes all pending objects when threshold is reached.
         """
         if obj is not None:
             self._objects[type(obj)].append(obj)
-            self._pending += 1
-            if self._pending >= self.threshold:
-                self.flush()
+            self._increment_pending()
 
     def flush(self):
         """Bulk-saves objects to the database, in mapping order."""
         for mapping in self.mappings:
+            self.session.bulk_insert_mappings(mapping, self._mappings[mapping])
+            self._mappings[mapping] = []
             self.session.bulk_save_objects(self._objects.pop(mapping))
             self._objects[mapping] = []
         self._pending = 0
@@ -183,10 +199,11 @@ def create_population(session, cities):
     with BulkSaver(session, Person, Employment) as batch:
         for city in cities:
             for person in make_people(city.seed_population_size):
-                person.id = next(serial)
-                person.city_id = city.id
-                batch.add(person)
-                batch.add(employ_person(person, city.companies))
+                person['id'] = next(serial)
+                person['city_id'] = city.id
+                employment = employ_person(person, city.companies)
+                batch.add_mapping(Person, person)
+                batch.add_mapping(Employment, employment)
 
 
 def create_commuters(session, cities, closest_n=15):
@@ -208,7 +225,7 @@ def create_commuters(session, cities, closest_n=15):
                 neighbouring[city] = neighbours[1:closest_n + 1]
             companies = itertools.chain.from_iterable(
                 neighbour.companies for neighbour in neighbouring[city])
-            batch.add(employ_person(person, companies))
+            batch.add_mapping(Employment, employ_person(person, companies))
 
 
 def create_self_employment(session):
@@ -219,7 +236,7 @@ def create_self_employment(session):
                 city_salary = person.city.companies[0].seed_salary()
                 salary_multiplier = random.uniform(0.5, 1.2)
                 person.self_employment_income = city_salary * salary_multiplier
-                batch.add(person)
+                batch.add_object(person)
 
 
 def employ_person(person, companies):
@@ -233,13 +250,14 @@ def employ_person(person, companies):
             return {'role': 'manager', 'salary': max(salaries)}
         return {'role': 'director', 'salary': sum(salaries)}
 
+    person_id = person['id'] if isinstance(person, dict) else person.id
     for company in companies:
         if random.random() < company.seed_hiring_chance:
             company.seed_employee_count += 1
             company.seed_hiring_chance = math.pow(
                 company.seed_hiring_slowdown, -company.seed_employee_count)
-            return Employment(
-                person_id=person.id,
+            return dict(
+                person_id=person_id,
                 company_id=company.id,
                 **role_and_salary(company))
 

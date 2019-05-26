@@ -7,8 +7,7 @@ import random
 
 from . models import (
     City,
-    Company,
-    Person)
+    Company)
 
 
 class CompanyGenerator:
@@ -85,11 +84,11 @@ class PopulationGenerator:
             last_name_pool = self.last_name_pool(size)
         for _step in range(size):
             gender = self.random_gender()
-            yield Person(
-                birthday=self.random_birthday(),
-                gender=gender,
-                first_name=random.choice(self._first_names[gender]),
-                last_name=pick_member(last_name_pool))
+            yield {
+                'birthday': self.random_birthday(),
+                'gender': gender,
+                'first_name': random.choice(self._first_names[gender]),
+                'last_name': pick_member(last_name_pool)}
 
     def last_name_pool(self, population_size, density_exponent=0.65):
         """Returns a pool of last names, based on population size.
