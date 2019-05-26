@@ -241,14 +241,13 @@ def create_self_employment(session):
 
 def employ_person(person, companies):
     """Assign the person an employer from a list of companies."""
-    def role_and_salary(company):
-        percentile = random.uniform(0, 100)
-        if percentile < 85:
-            return {'role': 'worker', 'salary': company.seed_salary()}
-        salaries = company.seed_salary(), company.seed_salary()
-        if percentile < 98:
-            return {'role': 'manager', 'salary': max(salaries)}
-        return {'role': 'director', 'salary': sum(salaries)}
+    def role_and_salary(salary):
+        percentile = random.random()
+        if percentile < 0.85:
+            return {'role': 'worker', 'salary': salary()}
+        if percentile < 0.9:
+            return {'role': 'manager', 'salary': max(salary(), salary())}
+        return {'role': 'director', 'salary': salary() + salary()}
 
     person_id = person['id'] if isinstance(person, dict) else person.id
     for company in companies:
@@ -259,7 +258,7 @@ def employ_person(person, companies):
             return dict(
                 person_id=person_id,
                 company_id=company.id,
-                **role_and_salary(company))
+                **role_and_salary(company.seed_salary))
 
 
 def unemployed_people(session):
