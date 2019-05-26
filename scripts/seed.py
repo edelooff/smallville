@@ -167,8 +167,8 @@ def create_transport_network(session, cities):
 
     created_links = set()
     for _repeat in range(round(chain_count - 0.25)):  # biased rounding
-        random.shuffle(cities)
-        for city, neighbour in pairwise_full_circle(cities):
+        shuffled_cities = random.sample(cities, len(cities))
+        for city, neighbour in pairwise_full_circle(shuffled_cities):
             lower, higher = sorted((city, neighbour), key=lambda city: city.id)
             if (lower, higher) not in created_links:
                 created_links.add((lower, higher))
