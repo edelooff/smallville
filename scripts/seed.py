@@ -80,7 +80,8 @@ def connect(db, user=None, echo=False):
     """
     if user is None:
         user = getpass.getuser()
-    return create_engine(f'postgres://{user}@/{db}', echo=echo)
+    return create_engine(
+        f'postgres://{user}@/{db}', echo=echo, use_batch_mode=True)
 
 
 def seed_entries(seed_file):
