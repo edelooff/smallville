@@ -122,15 +122,15 @@ def create_cities(session):
     """Creates cities for people to live in and companies to work at."""
     company_params = seed_json('business')
     company_params['names']['finalizer'] += company_params['names']['suffix']
-    make_company = CompanyGenerator(**company_params)
     make_city = city_generator(**seed_json('cities'))
+    make_company = CompanyGenerator(**company_params)
     names_and_sizes = map(split_field(';'), seed_entries('cities'))
     for city in itertools.starmap(make_city, names_and_sizes):
         size_args = itertools.repeat(city.size_code, city.seed_company_count)
-        city.companies.extend(map(make_company, size_args))
-        session.add(city)
-        session.flush()
+        city.companies = [make_company(size) for size in size_args]
         yield city
+        session.add(city)
+    session.flush()
 
 
 def create_transport_network(session, cities):
