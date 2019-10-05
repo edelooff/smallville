@@ -59,17 +59,16 @@ class BinaryQueue:
         """
         heap, imap = self._heap, self._index_map
         heaplen = len(heap)
-        child_pos = pos * 2 + 1
-        while child_pos < heaplen:
-            right_pos = child_pos + 1
-            if right_pos < heaplen and heap[right_pos] < heap[child_pos]:
-                child_pos = right_pos
-            child_entry = heap[child_pos]
-            heap[pos] = child_entry
-            imap[child_entry.vertex] = pos
-            pos = child_pos
-            child_pos = pos * 2 + 1
-        self._siftup(pos, entry)
+        left = pos * 2 + 1
+        while left < heaplen:
+            right = left + 1
+            minpos = left + (right < heaplen and heap[right] < heap[left])
+            minchild = heap[minpos]
+            heap[pos] = minchild
+            imap[minchild.vertex] = pos
+            pos = minpos
+            left = pos * 2 + 1
+        return self._siftup(pos, entry)
 
     def _siftup(self, pos, entry):
         """Swaps an entry with its parent until the heap is restored."""
