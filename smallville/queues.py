@@ -142,6 +142,9 @@ class _Node:
     def __lt__(self, other):
         return self.cost < other.cost
 
+    def __repr__(self):
+        return f'<_Node({self.vertex!r}, {self.cost!r})'
+
 
 class _PairingHeap:
     __slots__ = 'root', 'parent', '_subheaps'
