@@ -28,7 +28,7 @@ class BinaryQueue:
             del self._index_map[entry.vertex]
             tail = self._heap.pop()
             if self._heap:
-                self._siftdown(0, tail)
+                self._siftdown(tail)
             yield entry.vertex, entry.cost
 
     def __setitem__(self, vertex, cost):
@@ -43,7 +43,7 @@ class BinaryQueue:
             self._heap.append(entry)
         self._siftup(pos, entry)
 
-    def _siftdown(self, pos, entry):
+    def _siftdown(self, entry, pos=0):
         """Moves the item at pos to its correct position deeper in the heap.
 
         This heavily borrows from the Python heapq implementation which uses
