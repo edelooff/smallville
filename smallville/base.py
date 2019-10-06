@@ -43,9 +43,9 @@ class Base:
             identity = ', '.join(map(str, identity))
         model_name = type(self).__name__
         if hasattr(self, '__repr_args__'):
-            args = [(arg, getattr(self, arg)) for arg in self.__repr_args__]
-            argstring = ', '.join('{}={!r}'.format(*pair) for pair in args)
-            return f'<{model_name} [{identity}], {argstring}>'
+            args = ((arg, getattr(self, arg)) for arg in self.__repr_args__)
+            argstring = ', '.join(f'{arg}={val!r}' for arg, val in args)
+            return f'<{model_name} [{identity}]: {argstring}>'
         return f'<{model_name} [{identity}]>'
 
 
