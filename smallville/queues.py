@@ -33,6 +33,9 @@ class BinaryQueue:
                 self._siftdown(tail)
             yield entry.vertex, entry.cost
 
+    def __bool__(self):
+        return bool(self._heap)
+
     def __setitem__(self, vertex, cost):
         """Updates existing entry in the heap, or inserts a new one."""
         pos = self._index_map.get(vertex)
@@ -118,6 +121,9 @@ class PairingQueue:
             self._heap.parent = None
             self._heap = _merge_pairs(self._heap)
             yield entry.vertex, entry.cost
+
+    def __bool__(self):
+        return self._heap is not None
 
     def __setitem__(self, vertex, cost):
         heap = self._heapmap.get(vertex)
