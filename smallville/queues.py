@@ -15,6 +15,8 @@ class BinaryQueue:
     allowed, though not enforced at runtime), its position is looked up, its
     value altered, and it's moved to the correct position in the heap.
     """
+    __slots__ = '_heap', '_index_map'
+
     def __init__(self, vertex_dict=None):
         self._heap = []
         self._index_map = {}
@@ -96,6 +98,8 @@ class PairingQueue:
     allowed, though not enforced at runtime), its position is looked up, its
     value altered, and it's moved to the correct position in the heap.
     """
+    __slots__ = '_heap', '_heapmap'
+
     def __init__(self, vertex_dict=None):
         self._heap = None
         self._heapmap = {}
