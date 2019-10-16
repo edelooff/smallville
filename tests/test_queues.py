@@ -40,3 +40,22 @@ def test_initialize_and_decrease(queue):
     q = queue({'a': 1})
     q['a'] = 5
     assert list(q) == [('a', 5)]
+
+
+def test_order_insert_exhaust(queue, sequence):
+    """Queue returns items in sorted (ascending) order."""
+    q = queue()
+    for idx, value in enumerate(sequence):
+        q[idx] = value
+    assert [val for idx, val in q] == sorted(sequence)
+
+
+def test_order_insert_decrease_exhaust(queue, sequence):
+    """Queue returns items in sorted (ascending) order after decreases."""
+    q = queue(dict(enumerate(sequence)))
+    expected = {}
+    for idx, value in enumerate(sequence):
+        # Alternates between larger and smaller reductions, trending smaller
+        reduction = (1 / (idx + 1)) * len(sequence) * (idx % 2 + 0.5)
+        expected[idx] = q[idx] = value - reduction
+    assert [val for idx, val in q] == sorted(expected.values())
