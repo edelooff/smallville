@@ -59,3 +59,18 @@ def test_order_insert_decrease_exhaust(queue, sequence):
         reduction = (1 / (idx + 1)) * len(sequence) * (idx % 2 + 0.5)
         expected[idx] = q[idx] = value - reduction
     assert [val for idx, val in q] == sorted(expected.values())
+
+
+# ##############################################
+# Test cases based on specific observed failures
+#
+def test_update_parent_references_on_decrease(queue):
+    """When removing values from pairing queue, clean up parent of new root."""
+    q = queue({'foo': 8, 'bar': 4})
+    qi = iter(q)
+    q['foo'] = 2
+    q['bar'] = 1
+    assert next(qi) == ('bar', 1)
+    assert next(qi) == ('foo', 2)
+    with pytest.raises(StopIteration):
+        next(qi)
