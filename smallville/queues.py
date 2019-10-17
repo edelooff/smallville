@@ -15,6 +15,8 @@ class BinaryQueue:
     allowed, though not enforced at runtime), its position is looked up, its
     value altered, and it's moved to the correct position in the heap.
     """
+    __slots__ = '_heap', '_index_map'
+
     def __init__(self, vertex_dict=None):
         self._heap = []
         self._index_map = {}
@@ -30,6 +32,9 @@ class BinaryQueue:
             if self._heap:
                 self._siftdown(tail)
             yield entry.vertex, entry.cost
+
+    def __bool__(self):
+        return bool(self._heap)
 
     def __setitem__(self, vertex, cost):
         """Updates existing entry in the heap, or inserts a new one."""
@@ -96,6 +101,8 @@ class PairingQueue:
     allowed, though not enforced at runtime), its position is looked up, its
     value altered, and it's moved to the correct position in the heap.
     """
+    __slots__ = '_heap', '_heapmap'
+
     def __init__(self, vertex_dict=None):
         self._heap = None
         self._heapmap = {}
@@ -114,6 +121,9 @@ class PairingQueue:
             self._heap.parent = None
             self._heap = _merge_pairs(self._heap)
             yield entry.vertex, entry.cost
+
+    def __bool__(self):
+        return self._heap is not None
 
     def __setitem__(self, vertex, cost):
         heap = self._heapmap.get(vertex)
