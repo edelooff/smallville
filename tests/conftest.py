@@ -7,6 +7,13 @@ from smallville.queues import (
     PairingQueue)
 
 
+def pytest_addoption(parser):
+    parser.addoption(
+        "--bench",
+        action="store_true",
+        help="runs large sequence lengths to benchmark queue performance")
+
+
 @pytest.fixture(params=[BinaryQueue, PairingQueue])
 def queue(request):
     """Returns an empty Queue instance."""
@@ -16,7 +23,7 @@ def queue(request):
 @pytest.fixture(params=['linear', 'organpipe', 'interleaved', 'shifted'])
 def _sequence(request):
     """Returns a list of numbers in several different variations."""
-    length = 500
+    length = 50000 if request.config.getoption('bench') else 500
     if request.param == 'linear':
         return list(range(length))
     if request.param == 'organpipe':
